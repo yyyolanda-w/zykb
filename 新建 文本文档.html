@@ -1,63 +1,192 @@
 <!DOCTYPE html>
 <html lang="zh-CN">
 <head>
-    <meta charset="UTF-8">
-    <title>zykb</title>
-    <style>
-        body { margin: 0; display: flex; height: 100vh; font-family: "Microsoft YaHei", sans-serif; overflow: hidden; background: #f0f2f5; }
-        #sidebar { width: 220px; background: #001529; color: rgba(255,255,255,0.65); display: flex; flex-direction: column; z-index: 10; }
-        .sidebar-header { padding: 20px; color: white; font-size: 18px; font-weight: bold; background: #002140; text-align: center; }
-        .nav-group { flex: 1; overflow-y: auto; }
-        .nav-item { padding: 12px 24px; cursor: pointer; transition: all 0.3s; border-left: 4px solid transparent; border-bottom: 1px solid #002140; }
-        .nav-item:hover { color: white; background: #7722a8; }
-        .active { color: white !important; background: #7722a8 !important; border-left: 4px solid #fff; }
-        #content-container { flex: 1; display: flex; flex-direction: column; }
-        #content { flex: 1; border: none; width: 100%; height: 100%; }
-    </style>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>直营看板</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<script>
+  tailwind.config = {
+    theme: {
+      extend: {
+        colors: {
+          brand: {
+            DEFAULT: '#4f078d',
+            activeBg:'#f5f2f9',
+            50: '#f3e8ff',
+            100: '#e9d5ff',
+            200: '#d8b4fe',
+            300: '#c084fc',
+            400: '#a855f7',
+            500: '#9333ea',
+            600: '#7e22ce',
+            700: '#6b21a8',
+            800: '#581c87',
+            900: '#4f078d'
+          }
+        },
+        boxShadow: {
+          soft: '0 4px 20px rgba(79, 7, 141, 0.12)'
+        }
+      }
+    }
+  }
+</script>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/lucide-static@0.408.0/font/lucide.css">
+<style>
+*{box-sizing:border-box;}
+body {
+  font-family: Inter, "PingFang SC", "Microsoft YaHei", system-ui, sans-serif;
+  background-color: #f9fafb;
+  color:#4f078d;
+  height:100vh;
+  overflow:hidden;
+}
+
+/* 侧边栏收缩动画 */
+.sidebar {
+  transition: width 0.3s ease;
+}
+.sidebar-collapse{
+  width:64px !important;
+}
+.sidebar-collapse .menu-text{
+  opacity:0;
+  width:0;
+  overflow:hidden;
+}
+.sidebar-collapse .sidebar-title{
+  opacity:0;
+  overflow:hidden;
+}
+
+/* 菜单item */
+.nav-menu-item{
+  transition: all 0.24s ease;
+}
+.nav-menu-item.active{
+  background-color: #f5f2f9;
+  color: #4f078d;
+  border-right: 3px solid #4f078d;
+}
+.nav-menu-item:hover:not(.active){
+  background-color:#f5f5f7;
+}
+
+/* 美化滚动条 */
+.scrollbar-side::-webkit-scrollbar {
+  width:4px;
+}
+.scrollbar-side::-webkit-scrollbar-thumb{
+  background:#d1d5db;
+  border-radius:4px;
+}
+.scrollbar-side::-webkit-scrollbar-track{
+  background:transparent;
+}
+</style>
 </head>
 <body oncontextmenu="return false;">
+<div class="flex w-full h-full">
 
-    <div id="sidebar">
-        <div class="sidebar-header">看板管理</div>
-        <div class="nav-group">
-            <div class="nav-item" data-id="gQq9" onclick="load(this)">总览</div>
-            <div class="nav-item" data-id="pjMw" onclick="load(this)">工单解决率</div>
-            <div class="nav-item" data-id="ZoVQ" onclick="load(this)">闭环率</div>
-            <div class="nav-item" data-id="0sjt" onclick="load(this)">兜底量/介入量</div>
-            <div class="nav-item" data-id="CjQl" onclick="load(this)">在线接待</div>
-            <div class="nav-item" data-id="qmVY" onclick="load(this)">三大平台同行对比</div>
-            <div class="nav-item" data-id="NgiX" onclick="load(this)">话务接待</div>
-            <div class="nav-item" data-id="Kcoe" onclick="load(this)">95电话看板</div>
-            <div class="nav-item" data-id="da8S" onclick="load(this)">质检看板</div>
-            <div class="nav-item" data-id="z7Wb" onclick="load(this)">抖音工单通报</div>
-            <div class="nav-item" data-id="bHi4" onclick="load(this)">圆准达</div>
-            <div class="nav-item" data-id="kM9E" onclick="load(this)">产品月度指标</div>
-            <div class="nav-item" data-id="BOMT" onclick="load(this)">AAA工单/接待(测试中)</div>
-        </div>
+  <!-- 左侧可收缩侧边栏 -->
+  <aside id="sidebar" class="sidebar w-60 bg-white border-r border-slate-200 shadow-soft flex flex-col">
+    <!-- 侧边栏头部 -->
+    <div class="h-16 flex items-center px-3 border-b border-slate-200 gap-2">
+      <button id="toggleSidebar" class="w-10 h-10 rounded-lg flex items-center justify-center hover:bg-brand-activeBg text-brand flex-shrink-0">
+        <i data-lucide="menu" class="w-5 h-5"></i>
+      </button>
+      <span class="sidebar-title font-semibold text-lg text-slate-800 whitespace-nowrap">直营看板</span>
     </div>
 
-    <div id="content-container">
-        <iframe id="content" src="about:blank"></iframe>
+    <!-- 导航菜单区域 -->
+    <div class="flex-1 overflow-y-auto scrollbar-side py-3">
+      <div id="menuWrap"></div>
     </div>
+  </aside>
 
-    <script>
-        function load(el) {
-            const id = el.getAttribute('data-id');
-            const prefix = "h"+"t"+"t"+"p"+"s"+":"+"/"+"/"+"d"+"e"+"m"+"o"+".f"+"a"+"n"+"r"+"u"+"a"+"n"+".c"+"o"+"m"+"/"+"w"+"e"+"b"+"r"+"o"+"o"+"t"+"/"+"d"+"e"+"c"+"i"+"s"+"i"+"o"+"n"+"/"+"l"+"i"+"n"+"k"+"/";
-            const targetUrl = prefix + id;
-            document.querySelectorAll('.nav-item').forEach(i => i.classList.remove('active'));
-            el.classList.add('active');
-            document.getElementById('content').src = targetUrl;
-        }
-        window.onload = () => {
-            const first = document.querySelector('.nav-item');
-            if(first) load(first);
-        };
-        document.onkeydown = function(e) {
-            if (e.keyCode == 123 || (e.ctrlKey && e.shiftKey && (e.keyCode == 73 || e.keyCode == 74))) {
-                return false;
-            }
-        };
-    </script>
+  <!-- 右侧主内容区域 -->
+  <div class="flex-1 flex flex-col overflow-hidden">
+    <!-- 顶部面包屑栏 -->
+    <header class="h-12 bg-white border-b border-slate-200 flex items-center px-5">
+      <span class="text-slate-400">当前看板：</span>
+      <span id="currentTitle" class="ml-2 font-medium text-brand">请在左侧选择看板</span>
+    </header>
+    <!-- iframe容器 -->
+    <div class="flex-1 p-4">
+      <div class="w-full h-full bg-white rounded-xl shadow-sm overflow-hidden border border-slate-200">
+        <iframe id="mainIframe" src="about:blank" class="w-full h-full border-none"></iframe>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/lucide@0.408.0/dist/umd/lucide.min.js"></script>
+<script>
+// 看板配置，每个看板使用不同图标
+const boardList = [
+  { name: "总览", id: "gQq9", icon: "layout-dashboard" },
+  { name: "工单解决率", id: "pjMw", icon: "check-circle-2" },
+  { name: "闭环率", id: "ZoVQ", icon: "refresh-cw" },
+  { name: "兜底量/介入量", id: "0sjt", icon: "shield-check" },
+  { name: "在线接待", id: "CjQl", icon: "headphones" },
+  { name: "三大平台同行对比", id: "qmVY", icon: "bar-chart-3" },
+  { name: "话务接待", id: "NgiX", icon: "phone" },
+  { name: "95电话看板", id: "Kcoe", icon: "phone-call" },
+  { name: "质检看板", id: "da8S", icon: "file-check" },
+  { name: "抖音工单通报", id: "z7Wb", icon: "bell" },
+  { name: "圆准达", id: "bHi4", icon: "package" },
+  { name: "产品月度指标", id: "kM9E", icon: "calendar-check" },
+  { name: "AAA工单/接待(测试中)", id: "BOMT", icon: "flask-conical" }
+];
+
+const prefix = "h"+"t"+"t"+"p"+"s"+":"+"/"+"/"+"d"+"e"+"m"+"o"+".f"+"a"+"n"+"r"+"u"+"a"+"n"+".c"+"o"+"m"+"/"+"w"+"e"+"b"+"r"+"o"+"o"+"t"+"/"+"d"+"e"+"c"+"i"+"s"+"i"+"o"+"n"+"/"+"l"+"i"+"n"+"k"+"/";
+
+const menuWrap = document.getElementById("menuWrap");
+const sidebarDom = document.getElementById("sidebar");
+const toggleBtn = document.getElementById("toggleSidebar");
+const mainIframe = document.getElementById("mainIframe");
+const currentTitleDom = document.getElementById("currentTitle");
+
+// 渲染左侧菜单
+boardList.forEach((item, index) => {
+  const div = document.createElement("div");
+  div.className = "nav-menu-item px-3 py-2.5 cursor-pointer flex items-center gap-3 text-slate-600";
+  div.dataset.index = index;
+  div.innerHTML = `
+    <i data-lucide="${item.icon}" class="w-4 h-4 flex-shrink-0 text-brand"></i>
+    <span class="menu-text whitespace-nowrap">${item.name}</span>
+  `;
+  div.onclick = function(){
+    document.querySelectorAll(".nav-menu-item").forEach(el=>el.classList.remove("active"));
+    this.classList.add("active");
+    const board = boardList[index];
+    mainIframe.src = prefix + board.id;
+    currentTitleDom.innerText = board.name;
+  };
+  menuWrap.appendChild(div);
+});
+
+// 侧边栏收缩展开切换
+let sideCollapse = false;
+toggleBtn.onclick = function(){
+  sideCollapse = !sideCollapse;
+  sidebarDom.classList.toggle("sidebar-collapse", sideCollapse);
+};
+
+// 页面默认加载第一个
+window.onload = ()=>{
+  lucide.createIcons();
+  const firstItem = document.querySelector(".nav-menu-item");
+  if(firstItem) firstItem.click();
+};
+
+// 屏蔽F12
+document.onkeydown = function(e) {
+  if (e.keyCode == 123 || (e.ctrlKey && e.shiftKey && (e.keyCode == 73 || e.keyCode == 74))) {
+    return false;
+  }
+};
+</script>
 </body>
 </html>
